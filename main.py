@@ -118,7 +118,8 @@ def get_question_and_facts():
 @app.route('/process', methods=['POST'])
 def process():
     question = request.form['question']
-    call_logs = [request.files[file].read().decode('utf-8') for file in request.files]
+    documents = request.files.getlist('documents')
+    call_logs = [doc.read().decode('utf-8') for doc in documents]
 
     extracted_facts = process_documents(question, call_logs)
 
