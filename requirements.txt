@@ -4,3 +4,4 @@ google-api-python-client
 requests==2.26.0
 google-generativeai
 Werkzeug==1.0.0
+MarkupSafe==2.0.1
