@@ -4,19 +4,19 @@ from typing import List
 import google.generativeai as genai
 import requests
 
-# Configure Google Generative AI
+# TODO: host online, refine the main screen content and landing page, test it as well 
+
 genai.configure(api_key="AIzaSyCGFaJB7dMn0ZidStYJubn2JnUiqWnvwRU")
 
-# Initialize Flask app
+model = genai.GenerativeModel('gemini-pro')
+
 app = Flask(__name__)
 
-# Define Pydantic model for response
 class GetQuestionAndFactsResponse(BaseModel):
     question: str
     facts: List[str]
     status: str
 
-# Store data globally
 facts_dict = {
     'question': '',
     'documents': [],
@@ -24,12 +24,11 @@ facts_dict = {
     'status': ''
 }
 
-# Function to process documents and extract facts
 def process_documents(question, documents):
     facts = []
 
     for doc in documents:
-        response = genai.GenerativeModel('gemini-pro').generate_content(
+        response = model.generate_content(
             f"Question: {question}\nDocument:\n{doc}"
         )
 
@@ -45,19 +44,17 @@ def process_documents(question, documents):
 
     return facts
 
-# Route for home page
 @app.route('/')
 def index():
     return render_template('index.html')
 
-# Route to submit question and documents
 @app.route('/submit_question_and_documents', methods=['POST'])
 def submit_question_and_documents():
     req_data = request.get_json()
 
     if not req_data:
         return jsonify(error="No JSON data received"), 400
-    
+
     question = req_data.get('question')
     documents = req_data.get('documents')
 
@@ -85,16 +82,16 @@ def submit_question_and_documents():
     facts_dict = {
         'question': question,
         'documents': documents_content,
-        'status': 'processing'
+        'status': 'done'
     }
 
     return jsonify({}), 200
 
-# Route to get question and facts
+
 @app.route('/get_question_and_facts', methods=['GET'])
 def get_question_and_facts():
     global facts_dict
-
+    print(facts_dict)
     if facts_dict:
         if facts_dict['status'] == 'processing':
             return jsonify({
@@ -104,7 +101,9 @@ def get_question_and_facts():
         elif facts_dict['status'] == 'done':
             facts = process_documents(facts_dict['question'], facts_dict['documents'])
             facts_dict['facts'] = facts
+            facts_dict['status'] = 'done'
             response = GetQuestionAndFactsResponse(**facts_dict)
+            # Clear facts_dict
             facts_dict = {
                 'question': '',
                 'documents': [],
@@ -115,24 +114,15 @@ def get_question_and_facts():
 
     return jsonify(error="No question and documents submitted"), 400
 
-# Route to process question and documents
+
 @app.route('/process', methods=['POST'])
 def process():
     question = request.form['question']
-    documents = request.files.getlist('documents')
-    call_logs = [doc.read().decode('utf-8') for doc in documents]
-
-    global facts_dict
-    facts_dict = {
-        'question': question,
-        'documents': call_logs,
-        'status': 'done'
-    }
+    call_logs = [request.files[file].read().decode('utf-8') for file in request.files]
 
     extracted_facts = process_documents(question, call_logs)
 
     return render_template('result.html', extracted_facts=extracted_facts)
 
-# Run the Flask app
 if __name__ == '__main__':
     app.run(debug=True)

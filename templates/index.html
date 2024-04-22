@@ -7,16 +7,12 @@
 </head>
 <body>
     <h1>Call Log Analyzer</h1>
-    <form action="https://argonarnav.github.io/takehome_assignement/process" method="post" enctype="multipart/form-data">
-        <div class="form-group">
-            <label for="question">Enter your question:</label><br>
-            <input type="text" id="question" name="question"><br><br>
-        </div>
-        <div class="form-group">
-            <label for="call_logs">Upload call logs (one or more):</label><br>
-            <input type="file" id="call_logs" name="documents" multiple accept=".txt"><br><br>
-        </div>
-        <button type="submit" class="btn btn-primary">Submit</button>
+    <form action="/process" method="post" enctype="multipart/form-data">
+        <label for="question">Enter your question:</label><br>
+        <input type="text" id="question" name="question"><br><br>
+        <label for="call_logs">Upload call logs (one or more):</label><br>
+        <input type="file" id="call_logs" name="call_logs" multiple accept=".txt"><br><br>
+        <input type="submit" value="Submit">
     </form>
 </body>
 </html>
